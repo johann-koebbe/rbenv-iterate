@@ -1,0 +1,103 @@
+#!/usr/bin/env ruby
+
+require "optparse"
+
+$stdout.sync = true
+
+options = {
+  include: nil,
+  exclude: nil,
+  quiet: false,
+  dry_run: false
+}
+
+optparse = OptionParser.new do |opts|
+  # Set a banner, displayed at the top of the help screen.
+  opts.banner = <<-EOB
+
+  Execute the same command for specific rubies.
+
+  Usage: rbenv exec [-i list-or-regex] [-e list-or-regex] [-q] command
+
+  Examples:
+
+  Exclude all JRubies using a regular expression:
+  $ rbenv exec -i /^jruby/ command
+
+  Include only 2.1.6 and 2.2.2 using a comma-separated list (no spaces):
+  $ rbenv exec -i '2.1.6,2.2.2' command
+
+  EOB
+
+  include_desc = 'Include only these rubies. Supports list or regular expression. Overrides exclude.'
+  opts.on('-i', '--include LIST-OR-REGEX', include_desc) do |list_or_regex|
+    options[:include] = list_or_regex
+  end
+
+  exclude_desc = 'Exclude these rubies. Supports list or regular expression.'
+  opts.on('-e', '--exclude LIST-OR-REGEX', exclude_desc) do |list_or_regex|
+    options[:exclude] = list_or_regex
+  end
+
+  opts.on('-q', '--quiet', "Don't output current ruby.") do
+    options[:quiet] = true
+  end
+
+  opts.on('-d', '--dry-run', 'Dry run. Print commands instead of executing them.') do
+    options[:dry_run] = true
+  end
+
+  opts.on( '-h', '--help', 'Display this screen.' ) do
+    puts opts
+    exit 0
+  end
+end
+
+optparse.parse!
+
+command = ARGV.at(0)
+
+unless command
+  puts "\nNo command specified. Exiting.\n"
+  exit
+end
+
+def filter_versions(list, pattern)
+  return [] unless pattern
+
+  if pattern =~ /\/.*\//
+    pattern = /#{pattern[1, pattern.length - 2]}/
+  else
+    pattern = /#{pattern.split(',').join('|')}/
+  end
+
+  filtered = []
+  list.each { |e| filtered << e if e =~ pattern }
+  filtered
+end
+
+all_versions = `rbenv versions --bare`.split("\n")
+
+include_versions = filter_versions all_versions, options[:include]
+exclude_versions = filter_versions all_versions, options[:exclude]
+
+versions = all_versions - exclude_versions
+if include_versions.any?
+  # it's possible that exclude removed something to be included,
+  # and we want including to override excluding
+  versions = (versions + include_versions).uniq
+
+  # now remove anything not included
+  versions.delete_if { |e| !include_versions.include?(e) }
+end
+
+versions.each do |version|
+  banner = "\n"
+  banner << "Execing in #{version}...\n" unless options[:quiet]
+  puts banner
+
+  full_command = "RBENV_VERSION=#{version} #{command}"
+  output = options[:dry_run] ? full_command : `#{full_command}`
+  puts output
+end
+
