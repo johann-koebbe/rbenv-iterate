@@ -10,7 +10,7 @@ Execute a command in multiple, specific rbenv rubies.
   Examples:
 
   Exclude all JRubies using a regular expression:
-  $ rbenv iterate -i /^jruby/ 'command'
+  $ rbenv iterate -e /^jruby/ 'command'
 
   Include only 2.1.6 and 2.2.2 using a comma-separated list (no spaces):
   $ rbenv iterate -i '2.1.6,2.2.2' 'command'
