@@ -93,11 +93,16 @@ end
 
 versions.each do |version|
   banner = "\n"
-  banner << "Executing in #{version}...\n" unless options[:quiet]
+  banner << "* * * * * Executing in #{version}...\n" unless options[:quiet]
   puts banner
 
-  full_command = "RBENV_VERSION=#{version} #{command}"
-  output = options[:dry_run] ? full_command : `#{full_command}`
-  puts output
+  if options[:dry_run]
+    puts command
+  else
+    # Per https://github.com/sstephenson/rbenv/issues/358 and https://github.com/sstephenson/rbenv/issues/121,
+    # use rbenv exec along with RBENV_VERSION to force correct ruby in subprocess.
+    env = { 'RBENV_VERSION' => version }
+    system env, "rbenv exec #{command}"
+  end
 end
 
