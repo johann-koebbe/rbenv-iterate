@@ -7,6 +7,34 @@ quiet=false
 dry_run=false
 cmd=''
 
+function print_usage
+{
+  cat <<USAGE
+
+Usage: rbenv iterate [-i filter] [-e filter] [-q] [-d] command
+
+Options:
+
+-i filter / --include=filter     Comma-separated list or regular expression of versions to include.
+-e filter / --exclude=filter     Comma-separated list or regular expression of versions to exclude.
+-q / --quiet                     Do not echo current version during iteration.
+-d / --dry-run                   Echo the command instead of executing it.
+
+Examples:
+
+Exclude all JRubies using a regular expression:
+$ rbenv iterate -e /^jruby/ command
+
+Include only 2.1.6 and 2.2.2 using a comma-separated list (no spaces):
+$ rbenv iterate -i 2.1.6,2.2.2 command
+USAGE
+}
+
+if [[ "$1" == '' || "$1" == '-h' || "$1" == '--help' ]]; then
+  print_usage
+  exit 0
+fi
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
     -i) include="$2"; shift 2;;
