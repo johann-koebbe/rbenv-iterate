@@ -27,7 +27,7 @@ $ rbenv iterate -i 2.1.6,2.2.2 command
 
 ```bash
 $ mkdir -p $RBENV_ROOT/plugins
-$ git clone git@github.com:phillip-koebbe-fidelity/rbenv-iterate.git $RBENV_ROOT/plugins/rbenv-iterate
+$ git clone git@github.com:johann-p-koebbe/rbenv-iterate.git $RBENV_ROOT/plugins/rbenv-iterate
 ```
 
 ### Notes
